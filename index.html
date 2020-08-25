@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<title>Dark Walk</title>
+<style>
+html,body{
+height:100%;
+margin:0;
+}
+body{
+background-image:url("https://st.depositphotos.com/1092019/3699/i/450/depositphotos_36998909-stock-photo-paving-slabs-seamless-tileable-texture.jpg");
+background-size:200px 200px;
+background-repeat:repeat;
+font-family:consolas;
+}
+#div1{
+position:fixed;
+top:0;
+right:0;
+text-align:right;
+}
+#svg1{
+width:100%;
+height:100%;
+position:fixed;
+top:0;
+left:0;
+}
+#can1{
+}
+#myVideo{
+position:fixed;
+right:0;
+top:0px;
+min-width:100%;
+min-height:100%;
+filter:opacity(0.6);
+z-index:999;
+}
+
+</style>
+</head>
+<body>
+
+<svg id="svg1">
+<defs>
+<filter height="200%" width="200%" y="-50%" x="-50%" id="blur">
+<feGaussianBlur stdDeviation="20" in="SourceGraphic"/>
+</filter>
+<mask id="mlight">
+<rect width="100%" height="100%" fill="#fff"/>
+<circle cx="69" cy="69" r="69" fill="#000" filter="url(#blur)" id="c1">
+<animate attributeName="r" begin="0s" dur="0.5s" repeatCount="indefinite" values="69;74;69" />
+</circle>
+</mask>
+</defs>
+<rect width="100%" height="100%" fill="#000" style="mask:url(#mlight)" opacity="0.95"/>
+</svg>
+
+<div id="div1">
+	<span id="spa1"></span>
+</div>
+
+<canvas id="can1"></canvas>
+
+<video autoplay muted loop id="myVideo">
+	<!-- <source src="https://static.videezy.com/system/resources/previews/000/013/128/original/Smoke_43_-_4K_res.mp4" type="video/mp4"> -->
+	<!-- <source src="https://static.videezy.com/system/resources/previews/000/042/746/original/Rain_Drops_Falling_Heavy_rainstorm_background._4k_animation_7.mp4"> -->
+	<!-- <source src="https://static.videezy.com/system/resources/previews/000/044/004/original/Partical_Project_008.mp4"> -->
+	<source src="https://static.videezy.com/system/resources/previews/000/049/518/original/200616-WhiteSmokeLoop.mp4">
+</video>
+
+<script>
+var ww=window.innerWidth;
+var wh=window.innerHeight;
+var c1=document.getElementById("c1");
+var cx=69;
+var cy=69;
+var slow=0.75;
+
+const SCALE=1;
+const WIDTH=138;
+const HEIGHT=138;
+const SCALED_WIDTH=SCALE*WIDTH;
+const SCALED_HEIGHT=SCALE*HEIGHT;
+const CYCLE_LOOP=[0,1,2,3,4,5,6,7];
+
+const FACING_RIGHT=0;
+const FACING_UP=1;
+const FACING_UPRIGHT=2;
+const FACING_UPLEFT=3;
+const FACING_DOWN=4;
+const FACING_DOWNRIGHT=5;
+const FACING_DOWNLEFT=6;
+const FACING_LEFT=7;
+
+const FRAME_LIMIT=12;
+var MOVEMENT_SPEED=4;
+
+let canvas=document.querySelector('canvas');
+canvas.width=ww;
+canvas.height=wh;
+
+let ctx=canvas.getContext('2d');
+let keyPresses={};
+let currentDirection=FACING_DOWN;
+let currentLoopIndex=0;
+let frameCount=0;
+let positionX=0;
+let positionY=0;
+let img = new Image();
+
+window.addEventListener('keydown',keyDownListener);
+function keyDownListener(event){
+	keyPresses[event.key]=true;
+}
+
+window.addEventListener('keyup',keyUpListener);
+function keyUpListener(event){
+	keyPresses[event.key]=false;
+}
+
+function loadImage(){
+img.src='https://opengameart.org/sites/default/files/spritesheet_12.png';
+img.onload=function(){
+	window.requestAnimationFrame(gameLoop);
+};
+}
+
+function drawFrame(frameX,frameY,canvasX, canvasY){
+ctx.drawImage(img,
+	frameX*WIDTH,frameY*HEIGHT,WIDTH,HEIGHT,
+	canvasX,canvasY,SCALED_WIDTH,SCALED_HEIGHT);
+}
+
+loadImage();
+
+function gameLoop(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+let hasMoved=false;
+
+if(keyPresses.ArrowUp&&keyPresses.ArrowRight){
+if(cy-69>0){cy=cy-Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cy",cy);
+if(cx+69<ww){cx=cx+Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cx",cx);
+moveCharacter(Math.round(MOVEMENT_SPEED*slow),-Math.round(MOVEMENT_SPEED*slow),FACING_UPRIGHT);
+hasMoved=true;
+
+}else if(keyPresses.ArrowUp&&keyPresses.ArrowLeft){
+if(cy-69>0){cy=cy-Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cy",cy);
+if(cx-69>0){cx=cx-Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cx",cx);
+moveCharacter(-Math.round(MOVEMENT_SPEED*slow),-Math.round(MOVEMENT_SPEED*slow),FACING_UPLEFT);
+hasMoved=true;
+
+}else if(keyPresses.ArrowDown&&keyPresses.ArrowRight){
+if(cy+69<wh){cy=cy+Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cy",cy);
+if(cx+69<ww){cx=cx+Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cx",cx);
+moveCharacter(Math.round(MOVEMENT_SPEED*slow),Math.round(MOVEMENT_SPEED*slow),FACING_DOWNRIGHT);
+hasMoved=true;
+
+}else if(keyPresses.ArrowDown&&keyPresses.ArrowLeft){
+if(cy+69<wh){cy=cy+Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cy",cy);
+if(cx-69>0){cx=cx-Math.round(MOVEMENT_SPEED*slow);}
+c1.setAttribute("cx",cx);
+moveCharacter(-Math.round(MOVEMENT_SPEED*slow),Math.round(MOVEMENT_SPEED*slow),FACING_DOWNLEFT);
+hasMoved=true;
+
+}else if(keyPresses.ArrowUp){
+if(cy-69>0){cy=cy-MOVEMENT_SPEED;}
+c1.setAttribute("cy",cy);
+moveCharacter(0,-MOVEMENT_SPEED,FACING_UP);
+hasMoved=true;
+
+}else if(keyPresses.ArrowDown){
+if(cy+69<wh){cy=cy+MOVEMENT_SPEED;}
+c1.setAttribute("cy",cy);
+moveCharacter(0,MOVEMENT_SPEED,FACING_DOWN);
+hasMoved=true;
+
+}else if(keyPresses.ArrowRight){
+if(cx+69<ww){cx=cx+MOVEMENT_SPEED;}
+c1.setAttribute("cx",cx);
+moveCharacter(MOVEMENT_SPEED,0,FACING_RIGHT);
+hasMoved=true;
+
+}else if(keyPresses.ArrowLeft){
+if(cx-69>0){cx=cx-MOVEMENT_SPEED;}
+c1.setAttribute("cx",cx);
+moveCharacter(-MOVEMENT_SPEED,0,FACING_LEFT);
+hasMoved=true;
+}
+
+if(hasMoved){
+frameCount++;
+if(frameCount>=FRAME_LIMIT){
+frameCount=0;
+currentLoopIndex++;
+if(currentLoopIndex>=CYCLE_LOOP.length){
+currentLoopIndex=0;
+}}}
+
+if(!hasMoved){
+currentLoopIndex=2;
+MOVEMENT_SPEED=2;
+}
+
+drawFrame(CYCLE_LOOP[currentLoopIndex],currentDirection,positionX,positionY);
+window.requestAnimationFrame(gameLoop);
+}
+
+function moveCharacter(deltaX, deltaY, direction){
+if(positionX+deltaX>0&&positionX+SCALED_WIDTH+deltaX<canvas.width){
+positionX+=deltaX;
+}
+if(positionY+deltaY>0&&positionY+SCALED_HEIGHT+deltaY<canvas.height){
+positionY+=deltaY;
+}
+currentDirection=direction;
+}
+</script>
+
+</body>
+</html>
